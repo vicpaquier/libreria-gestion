@@ -1,12 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { NavigationComponent } from './material-templates/navigation/navigation.component';
 
 @Component({
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, NavigationComponent],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',
 })
-export class App {
-  protected readonly title = signal('libreria-gestion');
-}
+export class App {}

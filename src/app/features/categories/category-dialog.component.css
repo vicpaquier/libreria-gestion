@@ -1,0 +1,12 @@
+.entity-form {
+  display: grid;
+  gap: 0.5rem;
+  min-width: min(100%, 32rem);
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .entity-form {
+    min-width: 0;
+  }
+}

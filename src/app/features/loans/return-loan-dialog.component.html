@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>Registrar devolución</h2>
+
+<mat-dialog-content>
+  <div class="loan-summary">
+    <mat-icon>assignment_return</mat-icon>
+    <div>
+      <strong>{{ data.bookTitle }}</strong>
+      <span>{{ data.customerName }}</span>
+    </div>
+  </div>
+
+  <form class="loan-form" [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Fecha de devolución</mat-label>
+      <input
+        matInput
+        [matDatepicker]="returnPicker"
+        [min]="minimumDate"
+        formControlName="returnedDate"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="returnPicker" />
+      <mat-datepicker #returnPicker />
+      @if (form.hasError('returnDate')) {
+        <mat-error>No puede ser anterior a la fecha de préstamo.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Observaciones de devolución</mat-label>
+      <textarea matInput formControlName="returnNotes" rows="3"></textarea>
+      <mat-hint align="end">{{ form.controls.returnNotes.value.length }} / 300</mat-hint>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton mat-dialog-close type="button"><mat-icon>close</mat-icon>Cancelar</button>
+  <button matButton="filled" type="button" (click)="submit()">
+    <mat-icon>assignment_turned_in</mat-icon>Confirmar devolución
+  </button>
+</mat-dialog-actions>

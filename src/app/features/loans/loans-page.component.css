@@ -1,0 +1,49 @@
+mat-tab-group {
+  margin-top: 0.5rem;
+}
+
+.tab-icon {
+  margin-right: 0.4rem;
+}
+
+table {
+  min-width: 900px;
+}
+
+.book-title {
+  max-width: 18rem;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-isbn {
+  margin-top: 0.2rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.status-chip {
+  --mat-chip-container-height: 28px;
+  font-size: 0.75rem;
+}
+
+.status-active {
+  --mat-chip-elevated-container-color: #e2f7e8;
+  --mat-chip-label-text-color: #176a42;
+}
+
+.status-overdue {
+  --mat-chip-elevated-container-color: #ffe4e1;
+  --mat-chip-label-text-color: #a52a2a;
+}
+
+.status-returned {
+  --mat-chip-elevated-container-color: var(--mat-sys-secondary-container);
+  --mat-chip-label-text-color: var(--mat-sys-on-secondary-container);
+}
+
+mat-paginator {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}

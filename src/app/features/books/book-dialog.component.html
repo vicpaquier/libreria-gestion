@@ -1,0 +1,85 @@
+<h2 mat-dialog-title>{{ isEditing ? 'Modificar libro' : 'Nuevo libro' }}</h2>
+
+<mat-dialog-content>
+  <form class="book-form" [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Título</mat-label>
+      <input matInput formControlName="title" autocomplete="off" />
+      @if (form.controls.title.hasError('required')) {
+        <mat-error>El título es obligatorio.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>ISBN</mat-label>
+      <input matInput formControlName="isbn" autocomplete="off" />
+      @if (form.controls.isbn.hasError('required')) {
+        <mat-error>El ISBN es obligatorio.</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Autor</mat-label>
+        <mat-select formControlName="authorId">
+          @for (author of authorsStore.authors(); track author.id) {
+            <mat-option [value]="author.id">{{ author.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.authorId.hasError('min')) {
+          <mat-error>Selecciona un autor.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="categoryId">
+          @for (category of categoriesStore.categories(); track category.id) {
+            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.categoryId.hasError('min')) {
+          <mat-error>Selecciona una categoría.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Editorial</mat-label>
+      <input matInput formControlName="publisher" autocomplete="off" />
+      @if (form.controls.publisher.hasError('required')) {
+        <mat-error>La editorial es obligatoria.</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Precio</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="price" />
+        <span matTextPrefix>€&nbsp;</span>
+        @if (form.controls.price.hasError('min')) {
+          <mat-error>El precio no puede ser negativo.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Stock</mat-label>
+        <input matInput type="number" min="0" step="1" formControlName="stock" />
+        @if (form.controls.stock.hasError('min')) {
+          <mat-error>El stock no puede ser negativo.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton mat-dialog-close type="button">
+    <mat-icon>close</mat-icon>
+    Cancelar
+  </button>
+  <button matButton="filled" type="button" (click)="submit()">
+    <mat-icon>{{ isEditing ? 'save' : 'add' }}</mat-icon>
+    {{ isEditing ? 'Guardar cambios' : 'Crear libro' }}
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,196 @@
+<main class="page-content">
+  <section class="page-heading" aria-labelledby="loans-title">
+    <h1 id="loans-title">Préstamos y devoluciones</h1>
+    <button matButton="filled" type="button" (click)="openNewLoanDialog()">
+      <mat-icon>output</mat-icon>Nuevo préstamo
+    </button>
+  </section>
+
+  <mat-card class="table-card" appearance="outlined" aria-labelledby="loans-catalog-title">
+    <mat-card-header>
+      <mat-card-title id="loans-catalog-title">Control de circulación</mat-card-title>
+      <mat-card-subtitle>
+        {{ loansStore.totalActive() }} activos · {{ loansStore.totalOverdue() }} vencidos
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-toolbar">
+        <mat-form-field class="search-field" appearance="outline">
+          <mat-label>Buscar préstamo</mat-label>
+          <mat-icon matIconPrefix>search</mat-icon>
+          <input
+            matInput
+            type="search"
+            placeholder="Cliente, libro o ISBN..."
+            (input)="onSearch($event)"
+          />
+        </mat-form-field>
+      </div>
+      <mat-divider />
+
+      <mat-tab-group animationDuration="200ms">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">pending_actions</mat-icon>
+            Activos
+          </ng-template>
+          <div class="table-wrapper">
+            <table
+              mat-table
+              [dataSource]="pagedActiveLoans()"
+              matSort
+              [matSortActive]="activeSort().active"
+              [matSortDirection]="activeSort().direction"
+              (matSortChange)="onActiveSort($event)"
+              aria-label="Préstamos activos"
+            >
+              <ng-container matColumnDef="customer">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+                <td mat-cell *matCellDef="let loan" class="primary-cell">
+                  {{ customerName(loan.customerId) }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="book">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Libro</th>
+                <td mat-cell *matCellDef="let loan">
+                  <div class="book-title">{{ bookTitle(loan.bookId) }}</div>
+                  <div class="book-isbn">ISBN {{ bookIsbn(loan.bookId) }}</div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="loanDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Salida</th>
+                <td mat-cell *matCellDef="let loan">
+                  {{ loan.loanDate | date: 'dd/MM/yyyy' : 'UTC' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="dueDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Devolución prevista</th>
+                <td mat-cell *matCellDef="let loan">
+                  {{ loan.dueDate | date: 'dd/MM/yyyy' : 'UTC' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+                <td mat-cell *matCellDef="let loan">
+                  @let status = loansStore.status(loan);
+                  <mat-chip-set aria-label="Estado del préstamo">
+                    <mat-chip
+                      class="status-chip"
+                      [class.status-active]="status === 'Activo'"
+                      [class.status-overdue]="status === 'Vencido'"
+                      disableRipple
+                    >
+                      {{ status }}
+                    </mat-chip>
+                  </mat-chip-set>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>
+                  <span class="visually-hidden">Acciones</span>
+                </th>
+                <td mat-cell *matCellDef="let loan">
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    matTooltip="Registrar devolución"
+                    (click)="openReturnDialog(loan)"
+                  >
+                    <mat-icon>assignment_return</mat-icon>Devolver
+                  </button>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="activeColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: activeColumns"></tr>
+              <tr class="mat-row" *matNoDataRow>
+                <td class="empty-cell" [attr.colspan]="activeColumns.length">
+                  No hay préstamos activos que coincidan con la búsqueda.
+                </td>
+              </tr>
+            </table>
+          </div>
+          <mat-paginator
+            [length]="filteredActiveLoans().length"
+            [pageIndex]="activePageIndex()"
+            [pageSize]="pageSize()"
+            [pageSizeOptions]="[8, 16, 24]"
+            showFirstLastButtons
+            (page)="onActivePage($event)"
+            aria-label="Paginación de préstamos activos"
+          />
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">history</mat-icon>
+            Historial
+          </ng-template>
+          <div class="table-wrapper">
+            <table
+              mat-table
+              [dataSource]="pagedHistory()"
+              matSort
+              [matSortActive]="historySort().active"
+              [matSortDirection]="historySort().direction"
+              (matSortChange)="onHistorySort($event)"
+              aria-label="Historial de devoluciones"
+            >
+              <ng-container matColumnDef="customer">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+                <td mat-cell *matCellDef="let loan" class="primary-cell">
+                  {{ customerName(loan.customerId) }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="book">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Libro</th>
+                <td mat-cell *matCellDef="let loan">{{ bookTitle(loan.bookId) }}</td>
+              </ng-container>
+              <ng-container matColumnDef="loanDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Salida</th>
+                <td mat-cell *matCellDef="let loan">
+                  {{ loan.loanDate | date: 'dd/MM/yyyy' : 'UTC' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="dueDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha prevista</th>
+                <td mat-cell *matCellDef="let loan">
+                  {{ loan.dueDate | date: 'dd/MM/yyyy' : 'UTC' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="returnedDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Devuelto</th>
+                <td mat-cell *matCellDef="let loan">
+                  {{ loan.returnedDate | date: 'dd/MM/yyyy' : 'UTC' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef>
+                  <mat-chip-set aria-label="Estado del préstamo">
+                    <mat-chip class="status-chip status-returned" disableRipple>Devuelto</mat-chip>
+                  </mat-chip-set>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="historyColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: historyColumns"></tr>
+              <tr class="mat-row" *matNoDataRow>
+                <td class="empty-cell" [attr.colspan]="historyColumns.length">
+                  No hay devoluciones que coincidan con la búsqueda.
+                </td>
+              </tr>
+            </table>
+          </div>
+          <mat-paginator
+            [length]="filteredHistory().length"
+            [pageIndex]="historyPageIndex()"
+            [pageSize]="pageSize()"
+            [pageSizeOptions]="[8, 16, 24]"
+            showFirstLastButtons
+            (page)="onHistoryPage($event)"
+            aria-label="Paginación del historial"
+          />
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</main>

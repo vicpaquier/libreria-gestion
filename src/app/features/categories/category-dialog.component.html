@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>{{ isEditing ? 'Modificar categoría' : 'Nueva categoría' }}</h2>
+
+<mat-dialog-content>
+  <form class="entity-form" [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" autocomplete="off" />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>El nombre es obligatorio.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Descripción</mat-label>
+      <textarea matInput formControlName="description" rows="4"></textarea>
+      <mat-hint align="end">{{ form.controls.description.value.length }} / 300</mat-hint>
+      @if (form.controls.description.hasError('required')) {
+        <mat-error>La descripción es obligatoria.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton mat-dialog-close type="button"><mat-icon>close</mat-icon>Cancelar</button>
+  <button matButton="filled" type="button" (click)="submit()">
+    <mat-icon>{{ isEditing ? 'save' : 'add' }}</mat-icon>
+    {{ isEditing ? 'Guardar cambios' : 'Crear categoría' }}
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,184 @@
+<main class="dashboard" aria-labelledby="dashboard-title">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Resumen general</p>
+      <h1 id="dashboard-title">Panel de control</h1>
+      <p class="heading-copy">Consulta el estado actual del catálogo y del inventario.</p>
+    </div>
+  </header>
+
+  <section class="metrics-grid" aria-label="Métricas generales">
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <span class="metric-icon" aria-hidden="true"><mat-icon>menu_book</mat-icon></span>
+        <div>
+          <p class="metric-label">Libros</p>
+          <p class="metric-value">{{ booksStore.totalBooks() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <span class="metric-icon" aria-hidden="true"><mat-icon>inventory_2</mat-icon></span>
+        <div>
+          <p class="metric-label">Unidades en stock</p>
+          <p class="metric-value">{{ totalStock() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <span class="metric-icon" aria-hidden="true"><mat-icon>person</mat-icon></span>
+        <div>
+          <p class="metric-label">Autores</p>
+          <p class="metric-value">{{ authorsStore.totalAuthors() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <span class="metric-icon" aria-hidden="true"><mat-icon>category</mat-icon></span>
+        <div>
+          <p class="metric-label">Categorías</p>
+          <p class="metric-value">{{ categoriesStore.totalCategories() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <span class="metric-icon" aria-hidden="true"><mat-icon>people</mat-icon></span>
+        <div>
+          <p class="metric-label">Clientes</p>
+          <p class="metric-value">{{ customersStore.totalCustomers() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <span class="metric-icon" aria-hidden="true"><mat-icon>pending_actions</mat-icon></span>
+        <div>
+          <p class="metric-label">Préstamos activos</p>
+          <p class="metric-value">{{ loansStore.totalActive() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <span class="metric-icon" aria-hidden="true"
+          ><mat-icon>notification_important</mat-icon></span
+        >
+        <div>
+          <p class="metric-label">Préstamos vencidos</p>
+          <p class="metric-value">{{ loansStore.totalOverdue() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <section class="content-grid" aria-label="Estado del inventario">
+    <mat-card class="status-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Estado del inventario</mat-card-title>
+        <mat-card-subtitle>Disponibilidad de los títulos</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="status-grid">
+        @for (status of inventoryStatus(); track status.label) {
+          <div class="status-item" [class]="'status-item status-' + status.tone">
+            <mat-icon aria-hidden="true">{{ status.icon }}</mat-icon>
+            <div>
+              <span class="status-count">{{ status.count }}</span>
+              <span class="status-label">{{ status.label }}</span>
+            </div>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="distribution-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Distribución por categoría</mat-card-title>
+        <mat-card-subtitle>Proporción de títulos del catálogo</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (categoryDistribution().length) {
+          <div class="distribution-list">
+            @for (category of categoryDistribution(); track category.id) {
+              <div class="distribution-item">
+                <div class="distribution-label">
+                  <span>{{ category.name }}</span>
+                  <span>{{ category.count }} ({{ category.percentage.toFixed(0) }}%)</span>
+                </div>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="category.percentage"
+                  [attr.aria-label]="'Porcentaje de libros de ' + category.name"
+                />
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No hay categorías registradas.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="attention-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Inventario que requiere atención</mat-card-title>
+        <mat-card-subtitle>Libros con pocas unidades o agotados</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (attentionBooks().length) {
+          <mat-list aria-label="Libros con inventario bajo">
+            @for (book of attentionBooks(); track book.id) {
+              <mat-list-item>
+                <mat-icon matListItemIcon aria-hidden="true">
+                  {{ book.stock === 0 ? 'remove_shopping_cart' : 'inventory' }}
+                </mat-icon>
+                <span matListItemTitle>{{ book.title }}</span>
+                <span matListItemLine>
+                  {{ book.stock === 0 ? 'Agotado' : book.stock + ' unidades disponibles' }}
+                </span>
+              </mat-list-item>
+            }
+          </mat-list>
+        } @else {
+          <p class="empty-state">Todo el inventario tiene existencias suficientes.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="attention-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Próximas devoluciones</mat-card-title>
+        <mat-card-subtitle>Préstamos ordenados por fecha prevista</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (dueLoans().length) {
+          <mat-list aria-label="Próximas devoluciones">
+            @for (loan of dueLoans(); track loan.id) {
+              <mat-list-item>
+                <mat-icon matListItemIcon aria-hidden="true">
+                  {{ loansStore.status(loan) === 'Vencido' ? 'warning' : 'event' }}
+                </mat-icon>
+                <span matListItemTitle>{{ bookTitle(loan.bookId) }}</span>
+                <span matListItemLine>
+                  {{ customerName(loan.customerId) }} ·
+                  {{ loan.dueDate | date: 'dd/MM/yyyy' : 'UTC' }}
+                </span>
+              </mat-list-item>
+            }
+          </mat-list>
+        } @else {
+          <p class="empty-state">No hay préstamos activos.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+  </section>
+</main>

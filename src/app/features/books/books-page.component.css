@@ -1,0 +1,155 @@
+:host {
+  display: block;
+}
+
+.page-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 3vw, 3rem) 3rem;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0.5rem;
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.page-heading button mat-icon {
+  margin-right: 0.35rem;
+}
+
+.table-card {
+  margin-top: 1.5rem;
+  overflow: hidden;
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+}
+
+.search-field {
+  width: min(100%, 20rem);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 800px;
+}
+
+th.mat-mdc-header-cell,
+td.mat-mdc-cell {
+  padding-inline: 1rem;
+}
+
+.book-title {
+  max-width: 18rem;
+  overflow: hidden;
+  color: var(--mat-sys-on-surface);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-isbn {
+  margin-top: 0.2rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.75rem;
+}
+
+.category-chip,
+.status-chip {
+  --mat-chip-container-height: 28px;
+  font-size: 0.75rem;
+}
+
+.category-chip {
+  --mat-chip-elevated-container-color: var(--mat-sys-secondary-container);
+  --mat-chip-label-text-color: var(--mat-sys-on-secondary-container);
+}
+
+.status-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-disponible {
+  --mat-chip-elevated-container-color: #e2f7e8;
+  --mat-chip-label-text-color: #176a42;
+}
+.status-disponible .status-dot {
+  background: #176a42;
+}
+.status-bajo-stock {
+  --mat-chip-elevated-container-color: #fff2d3;
+  --mat-chip-label-text-color: #875d00;
+}
+.status-bajo-stock .status-dot {
+  background: #875d00;
+}
+.status-agotado {
+  --mat-chip-elevated-container-color: #ffe4e1;
+  --mat-chip-label-text-color: #a52a2a;
+}
+.status-agotado .status-dot {
+  background: #a52a2a;
+}
+
+.empty-cell {
+  padding: 3rem 1rem;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 700px) {
+  .page-content {
+    padding-top: 1.5rem;
+  }
+
+  .page-heading,
+  .table-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .page-heading button,
+  .search-field {
+    width: 100%;
+  }
+
+  .table-toolbar {
+    padding-top: 1rem;
+  }
+}

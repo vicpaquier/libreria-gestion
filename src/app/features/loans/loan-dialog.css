@@ -1,0 +1,43 @@
+.loan-form {
+  display: grid;
+  gap: 0.5rem;
+  min-width: min(100%, 38rem);
+  padding-top: 0.75rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.loan-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.loan-summary strong,
+.loan-summary span {
+  display: block;
+}
+
+.loan-summary span {
+  margin-top: 0.15rem;
+  font: var(--mat-sys-body-small);
+}
+
+@media (max-width: 600px) {
+  .loan-form {
+    min-width: 0;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
