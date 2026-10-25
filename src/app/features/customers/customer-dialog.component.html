@@ -1,61 +1,27 @@
-<h2 mat-dialog-title>{{ isEditing ? 'Modificar cliente' : 'Nuevo cliente' }}</h2>
-
-<mat-dialog-content>
-  <form class="customer-form" [formGroup]="form" (ngSubmit)="submit()">
-    <mat-form-field appearance="outline">
-      <mat-label>Nombre completo</mat-label>
-      <input matInput formControlName="name" autocomplete="name" />
-      @if (form.controls.name.hasError('required')) {
-        <mat-error>El nombre es obligatorio.</mat-error>
-      }
-    </mat-form-field>
-
+<h2 mat-dialog-title>{{ isEditing ? 'Modificar usuario' : 'Nuevo usuario' }}</h2>
+<mat-dialog-content
+  ><form class="customer-form" [formGroup]="form">
     <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Correo electrónico</mat-label>
-        <mat-icon matIconPrefix>mail</mat-icon>
-        <input matInput type="email" formControlName="email" autocomplete="email" />
-        @if (form.controls.email.hasError('required')) {
-          <mat-error>El correo es obligatorio.</mat-error>
-        } @else if (form.controls.email.hasError('email')) {
-          <mat-error>Introduce un correo válido.</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Teléfono</mat-label>
-        <mat-icon matIconPrefix>phone</mat-icon>
-        <input matInput type="tel" formControlName="phone" autocomplete="tel" />
-        @if (form.controls.phone.hasError('required')) {
-          <mat-error>El teléfono es obligatorio.</mat-error>
-        }
-      </mat-form-field>
+      <mat-form-field appearance="outline"
+        ><mat-label>Nombre</mat-label><input matInput formControlName="nombre" /></mat-form-field
+      ><mat-form-field appearance="outline"
+        ><mat-label>Apellido</mat-label><input matInput formControlName="apellido"
+      /></mat-form-field>
     </div>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Dirección</mat-label>
-      <mat-icon matIconPrefix>location_on</mat-icon>
-      <textarea
-        matInput
-        formControlName="address"
-        autocomplete="street-address"
-        rows="3"
-      ></textarea>
-      <mat-hint align="end">{{ form.controls.address.value.length }} / 200</mat-hint>
-      @if (form.controls.address.hasError('required')) {
-        <mat-error>La dirección es obligatoria.</mat-error>
-      }
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button matButton mat-dialog-close type="button">
-    <mat-icon>close</mat-icon>
-    Cancelar
-  </button>
-  <button matButton="filled" type="button" (click)="submit()">
-    <mat-icon>{{ isEditing ? 'save' : 'person_add' }}</mat-icon>
-    {{ isEditing ? 'Guardar cambios' : 'Crear cliente' }}
-  </button>
-</mat-dialog-actions>
+    <mat-form-field appearance="outline"
+      ><mat-label>Cédula</mat-label
+      ><input matInput formControlName="cedula" [readonly]="isEditing" /></mat-form-field
+    ><mat-form-field appearance="outline"
+      ><mat-label>Email</mat-label
+      ><input matInput type="email" formControlName="email" /></mat-form-field
+    ><mat-form-field appearance="outline"
+      ><mat-label>Teléfono</mat-label><input matInput formControlName="telefono" /></mat-form-field
+    ><mat-form-field appearance="outline"
+      ><mat-label>Dirección</mat-label><textarea matInput formControlName="direccion"></textarea>
+    </mat-form-field></form></mat-dialog-content
+><mat-dialog-actions align="end"
+  ><button matButton mat-dialog-close>Cancelar</button
+  ><button matButton="filled" (click)="submit()" [disabled]="submitted()">
+    Guardar
+  </button></mat-dialog-actions
+>

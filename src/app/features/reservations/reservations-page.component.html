@@ -1,0 +1,111 @@
+<main class="page-content">
+  <section class="page-heading"><h1>Reservas</h1></section>
+  <mat-card appearance="outlined">
+    <mat-card-header><mat-card-title>Nueva reserva</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form">
+        <mat-form-field appearance="outline">
+          <mat-label>Usuario activo</mat-label>
+          <mat-select formControlName="usuarioId">
+            @for (user of users.customers(); track user.id) {
+              <mat-option [value]="user.id">{{ user.nombre }} {{ user.apellido }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Libro</mat-label>
+          <mat-select formControlName="libroId">
+            @for (book of books.books(); track book.id) {
+              <mat-option [value]="book.id">{{ book.titulo }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          matButton="filled"
+          type="button"
+          (click)="create()"
+          [disabled]="form.invalid || !!pending()"
+        >
+          Crear reserva
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Consultar reservas por usuario</mat-card-title>
+      <mat-card-subtitle
+        >Admite cualquier usuario existente, incluido uno inactivo o fuera del selector de
+        creación.</mat-card-subtitle
+      >
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="historyForm" (ngSubmit)="loadHistory()">
+        <mat-form-field appearance="outline">
+          <mat-label>ID de usuario</mat-label>
+          <input matInput type="number" min="1" step="1" formControlName="usuarioId" />
+          @if (historyForm.controls.usuarioId.invalid) {
+            <mat-error>Introduce un ID de usuario válido.</mat-error>
+          }
+        </mat-form-field>
+        <button
+          matButton="filled"
+          type="submit"
+          [disabled]="historyForm.invalid || historyLoading()"
+        >
+          Consultar historial
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="table-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Reservas del usuario consultado</mat-card-title>
+      <mat-card-subtitle>Recuperadas mediante su historial contractual.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (historyLoading()) {
+        <p role="status">Cargando reservas...</p>
+      }
+      <table mat-table [dataSource]="store.reservations()">
+        <ng-container matColumnDef="reserva">
+          <th mat-header-cell *matHeaderCellDef>Reserva</th>
+          <td mat-cell *matCellDef="let reservation">
+            #{{ reservation.id }} · {{ reservation.libro.titulo }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let reservation">{{ reservation.estado }}</td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let reservation">
+            @if (reservation.estado === 'PENDIENTE') {
+              <button
+                matButton
+                type="button"
+                (click)="attend(reservation.id)"
+                [disabled]="!!pending()"
+              >
+                Atender
+              </button>
+              <button
+                matButton
+                type="button"
+                (click)="cancel(reservation.id)"
+                [disabled]="!!pending()"
+              >
+                Cancelar
+              </button>
+            }
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</main>

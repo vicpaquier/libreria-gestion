@@ -1,164 +1,143 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { Customer } from '../../models/customer';
+import { finalize } from 'rxjs';
+import { EstadoUsuario, HistorialUsuario, Usuario, UsuarioDetalle } from '../../models/api';
 import { CustomersStore } from '../../services/customers.store';
-import { LoansStore } from '../../services/loans.store';
-import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
+import { errorMessage } from '../../services/http-error';
 import { CustomerDialogComponent } from './customer-dialog.component';
-
 @Component({
   selector: 'app-customers-page',
   imports: [
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
-    MatDividerModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatMenuModule,
     MatPaginatorModule,
+    MatSelectModule,
     MatSnackBarModule,
-    MatSortModule,
     MatTableModule,
-    MatTooltipModule,
   ],
   templateUrl: './customers-page.component.html',
   styleUrl: '../../shared/crud-page.css',
 })
 export class CustomersPageComponent {
-  readonly customersStore = inject(CustomersStore);
+  readonly store = inject(CustomersStore);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
-  private readonly loansStore = inject(LoansStore);
-
-  readonly query = signal('');
-  readonly pageIndex = signal(0);
-  readonly pageSize = signal(8);
-  readonly sort = signal<Sort>({ active: 'name', direction: 'asc' });
-  readonly displayedColumns = ['name', 'email', 'phone', 'address', 'actions'];
-
-  readonly filteredCustomers = computed(() => {
-    const query = this.query().trim().toLowerCase();
-    return this.customersStore
-      .customers()
-      .filter((customer) =>
-        !query
-          ? true
-          : [customer.name, customer.email, customer.phone, customer.address].some((value) =>
-              value.toLowerCase().includes(query),
-            ),
-      );
-  });
-
-  readonly sortedCustomers = computed(() => {
-    const { active, direction } = this.sort();
-    if (!direction) {
-      return [...this.filteredCustomers()];
-    }
-
-    return [...this.filteredCustomers()].sort((first, second) => {
-      const comparison = String(first[active as keyof Customer]).localeCompare(
-        String(second[active as keyof Customer]),
-        'es',
-        { numeric: true },
-      );
-      return direction === 'asc' ? comparison : -comparison;
-    });
-  });
-
-  readonly pagedCustomers = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    return this.sortedCustomers().slice(start, start + this.pageSize());
-  });
-
-  onSearch(event: Event): void {
-    this.query.set((event.target as HTMLInputElement).value);
-    this.pageIndex.set(0);
+  private readonly snack = inject(MatSnackBar);
+  readonly page = signal(0);
+  readonly size = signal(20);
+  readonly buscar = signal('');
+  readonly estado = signal<EstadoUsuario | undefined>(undefined);
+  readonly pending = signal(false);
+  readonly columns = ['usuario', 'cedula', 'contacto', 'estado', 'acciones'];
+  constructor() {
+    this.load();
   }
-
-  onSort(sort: Sort): void {
-    this.sort.set(sort);
-    this.pageIndex.set(0);
+  load(): void {
+    this.store.load(this.page(), this.size(), this.buscar(), this.estado());
   }
-
-  onPageChange(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
+  search(event: Event): void {
+    this.buscar.set((event.target as HTMLInputElement).value);
+    this.page.set(0);
+    this.load();
   }
-
-  openCreateDialog(): void {
-    const ref = this.dialog.open(CustomerDialogComponent, {
-      width: 'min(92vw, 46rem)',
-      maxWidth: '100vw',
-      data: {},
-    });
-    ref.afterClosed().subscribe((customer) => {
-      if (customer) {
-        this.customersStore.add(customer);
-        this.notify('Cliente creado correctamente.');
-      }
+  filter(estado: EstadoUsuario | ''): void {
+    this.estado.set(estado || undefined);
+    this.page.set(0);
+    this.load();
+  }
+  changePage(event: PageEvent): void {
+    this.page.set(event.pageIndex);
+    this.size.set(event.pageSize);
+    this.load();
+  }
+  create(): void {
+    this.open();
+  }
+  detail(user: Usuario): void {
+    this.store.get(user.id).subscribe({
+      next: (data) => this.dialog.open(UserDetailDialog, { data, width: 'min(92vw, 52rem)' }),
+      error: (error) =>
+        this.notify(errorMessage(error, 'No se pudo cargar el detalle del usuario.')),
     });
   }
-
-  openEditDialog(customer: Customer): void {
-    const ref = this.dialog.open(CustomerDialogComponent, {
-      width: 'min(92vw, 46rem)',
-      maxWidth: '100vw',
-      data: { customer },
-    });
-    ref.afterClosed().subscribe((changes) => {
-      if (changes) {
-        this.customersStore.update(customer.id, changes);
-        this.notify('Cliente actualizado correctamente.');
-      }
+  history(user: Usuario): void {
+    this.store.history(user.id).subscribe({
+      next: (data) => this.dialog.open(UserHistoryDialog, { data, width: 'min(92vw, 52rem)' }),
+      error: (error) =>
+        this.notify(errorMessage(error, 'No se pudo cargar el historial del usuario.')),
     });
   }
-
-  confirmDelete(customer: Customer): void {
-    if (this.loansStore.hasCustomerHistory(customer.id)) {
-      this.notify('No se puede eliminar: el cliente tiene historial de préstamos.');
-      return;
-    }
-
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: 'min(92vw, 28rem)',
-      maxWidth: '100vw',
-      data: {
-        title: 'Eliminar cliente',
-        message: `¿Quieres eliminar a «${customer.name}»? Esta acción no se puede deshacer.`,
-      },
-    });
-    ref.afterClosed().subscribe((confirmed) => {
-      if (confirmed) {
-        this.customersStore.remove(customer.id);
-        this.pageIndex.set(Math.min(this.pageIndex(), this.lastPageIndex()));
-        this.notify('Cliente eliminado correctamente.');
-      }
-    });
+  edit(user: Usuario): void {
+    this.open(user);
   }
-
-  private lastPageIndex(): number {
-    return Math.max(0, Math.ceil(this.filteredCustomers().length / this.pageSize()) - 1);
+  toggle(user: Usuario): void {
+    if (this.pending()) return;
+    const estado = user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+    this.pending.set(true);
+    this.store
+      .changeStatus(user.id, estado)
+      .pipe(finalize(() => this.pending.set(false)))
+      .subscribe({
+        next: () => this.notify(`Usuario ${estado.toLowerCase()}.`),
+        error: (e) => this.notify(errorMessage(e, 'No se pudo cambiar el estado.')),
+      });
   }
-
+  private open(user?: Usuario): void {
+    this.dialog
+      .open(CustomerDialogComponent, { data: { customer: user }, width: 'min(92vw,46rem)' })
+      .afterClosed()
+      .subscribe((value) => {
+        if (!value) return;
+        const request = user
+          ? this.store.update(user.id, {
+              nombre: value.nombre,
+              apellido: value.apellido,
+              email: value.email,
+              telefono: value.telefono,
+              direccion: value.direccion,
+            })
+          : this.store.add({ ...value, cedula: value.cedula! });
+        if (this.pending()) return;
+        this.pending.set(true);
+        request.pipe(finalize(() => this.pending.set(false))).subscribe({
+          next: () => this.notify(user ? 'Usuario actualizado.' : 'Usuario creado.'),
+          error: (e) => this.notify(errorMessage(e, 'No se pudo guardar el usuario.')),
+        });
+      });
+  }
   private notify(message: string): void {
-    this.snackBar.open(message, 'Cerrar', {
-      duration: 3500,
-      horizontalPosition: 'end',
-      verticalPosition: 'bottom',
-    });
+    this.snack.open(message, 'Cerrar', { duration: 3500 });
   }
+}
+
+@Component({
+  selector: 'app-user-detail-dialog',
+  imports: [MatButtonModule, MatDialogModule],
+  template:
+    '<h2 mat-dialog-title>{{data.nombre}} {{data.apellido}}</h2><mat-dialog-content><p><strong>Cédula:</strong> {{data.cedula}} · {{data.estado}}</p><p><strong>Préstamos:</strong> {{data.prestamos.length}}</p><p><strong>Reservas:</strong> {{data.reservas.length}}</p><p><strong>Multas:</strong> {{data.multas.length}}</p></mat-dialog-content><mat-dialog-actions align="end"><button matButton mat-dialog-close>Cerrar</button></mat-dialog-actions>',
+})
+export class UserDetailDialog {
+  readonly data = inject<UsuarioDetalle>(MAT_DIALOG_DATA);
+}
+
+@Component({
+  selector: 'app-user-history-dialog',
+  imports: [MatButtonModule, MatDialogModule],
+  template:
+    '<h2 mat-dialog-title>Historial</h2><mat-dialog-content><p><strong>Préstamos:</strong> {{data.prestamos.length}}</p><p><strong>Reservas:</strong> {{data.reservas.length}}</p><p><strong>Multas:</strong> {{data.multas.length}}</p></mat-dialog-content><mat-dialog-actions align="end"><button matButton mat-dialog-close>Cerrar</button></mat-dialog-actions>',
+})
+export class UserHistoryDialog {
+  readonly data = inject<HistorialUsuario>(MAT_DIALOG_DATA);
 }

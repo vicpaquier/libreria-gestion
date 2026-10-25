@@ -1,8 +1,1 @@
-export interface Author {
-  id: number;
-  name: string;
-  nationality: string;
-  biography: string;
-}
-
-export type AuthorFormValue = Omit<Author, 'id'>;
+export type { Autor as Author, AutorSolicitud as AuthorFormValue } from './api';

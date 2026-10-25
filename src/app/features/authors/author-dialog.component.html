@@ -1,35 +1,23 @@
 <h2 mat-dialog-title>{{ isEditing ? 'Modificar autor' : 'Nuevo autor' }}</h2>
-
-<mat-dialog-content>
-  <form class="entity-form" [formGroup]="form" (ngSubmit)="submit()">
-    <mat-form-field appearance="outline">
-      <mat-label>Nombre completo</mat-label>
-      <input matInput formControlName="name" autocomplete="name" />
-      @if (form.controls.name.hasError('required')) {
-        <mat-error>El nombre es obligatorio.</mat-error>
+<mat-dialog-content
+  ><form class="entity-form" [formGroup]="form">
+    <mat-form-field appearance="outline"
+      ><mat-label>Nombre</mat-label><input matInput formControlName="nombre" />
+      @if (form.controls.nombre.invalid) {
+        <mat-error>Obligatorio</mat-error>
       }
     </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Nacionalidad</mat-label>
-      <input matInput formControlName="nationality" autocomplete="country-name" />
-      @if (form.controls.nationality.hasError('required')) {
-        <mat-error>La nacionalidad es obligatoria.</mat-error>
+    <mat-form-field appearance="outline"
+      ><mat-label>Apellido</mat-label><input matInput formControlName="apellido" />
+      @if (form.controls.apellido.invalid) {
+        <mat-error>Obligatorio</mat-error>
       }
     </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Biografía</mat-label>
-      <textarea matInput formControlName="biography" rows="4"></textarea>
-      <mat-hint align="end">{{ form.controls.biography.value.length }} / 500</mat-hint>
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button matButton mat-dialog-close type="button"><mat-icon>close</mat-icon>Cancelar</button>
-  <button matButton="filled" type="button" (click)="submit()">
-    <mat-icon>{{ isEditing ? 'save' : 'add' }}</mat-icon>
-    {{ isEditing ? 'Guardar cambios' : 'Crear autor' }}
-  </button>
-</mat-dialog-actions>
+    <mat-form-field appearance="outline"
+      ><mat-label>Nacionalidad</mat-label><input matInput formControlName="nacionalidad"
+    /></mat-form-field></form
+></mat-dialog-content>
+<mat-dialog-actions align="end"
+  ><button matButton mat-dialog-close>Cancelar</button
+  ><button matButton="filled" (click)="submit()">Guardar</button></mat-dialog-actions
+>

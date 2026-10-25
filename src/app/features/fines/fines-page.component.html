@@ -1,0 +1,103 @@
+<main class="page-content">
+  <section class="page-heading"><h1>Multas</h1></section>
+  <mat-card appearance="outlined">
+    <mat-card-header><mat-card-title>Registrar multa</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form">
+        <mat-form-field appearance="outline"
+          ><mat-label>ID préstamo</mat-label
+          ><input matInput type="number" formControlName="prestamoId"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>Monto</mat-label
+          ><input matInput type="number" min="0" formControlName="monto"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>Motivo</mat-label><input matInput formControlName="motivo"
+        /></mat-form-field>
+        <button
+          matButton="filled"
+          type="button"
+          (click)="create()"
+          [disabled]="form.invalid || !!pending()"
+        >
+          Registrar
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="table-card" appearance="outlined">
+    <mat-card-content>
+      <form class="table-toolbar" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+        <mat-form-field appearance="outline"
+          ><mat-label>ID usuario</mat-label
+          ><input matInput type="number" formControlName="usuarioId"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>ID préstamo</mat-label
+          ><input matInput type="number" formControlName="prestamoId"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>Estado</mat-label
+          ><mat-select formControlName="estado"
+            ><mat-option [value]="null">Todos</mat-option
+            ><mat-option value="PENDIENTE">Pendiente</mat-option
+            ><mat-option value="PAGADA">Pagada</mat-option
+            ><mat-option value="CANCELADA">Cancelada</mat-option></mat-select
+          ></mat-form-field
+        >
+        <mat-form-field appearance="outline"
+          ><mat-label>Fecha</mat-label><input matInput type="date" formControlName="fecha"
+        /></mat-form-field>
+        <button matButton="filled" type="submit">Aplicar filtros</button>
+      </form>
+      @if (store.loading()) {
+        <p role="status">Cargando multas...</p>
+      }
+      @if (store.error()) {
+        <p role="alert">{{ store.error() }}</p>
+      }
+      <table mat-table [dataSource]="store.fines()">
+        <ng-container matColumnDef="multa"
+          ><th mat-header-cell *matHeaderCellDef>Multa</th>
+          <td mat-cell *matCellDef="let fine">
+            #{{ fine.id }} · préstamo #{{ fine.prestamoId }}<br />{{ fine.motivo }}
+          </td></ng-container
+        >
+        <ng-container matColumnDef="monto"
+          ><th mat-header-cell *matHeaderCellDef>Monto</th>
+          <td mat-cell *matCellDef="let fine">
+            {{ fine.monto | currency: 'PYG' : 'symbol-narrow' : '1.0-0' }}
+          </td></ng-container
+        >
+        <ng-container matColumnDef="estado"
+          ><th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let fine">
+            {{ fine.estado }}<br />{{ fine.fechaMulta | date: 'dd/MM/yyyy' }}
+          </td></ng-container
+        >
+        <ng-container matColumnDef="acciones"
+          ><th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let fine">
+            @if (fine.estado === 'PENDIENTE') {
+              <button matButton type="button" (click)="pay(fine.id)" [disabled]="!!pending()">
+                Pagar</button
+              ><button matButton type="button" (click)="cancel(fine.id)" [disabled]="!!pending()">
+                Cancelar
+              </button>
+            }
+          </td></ng-container
+        >
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+      <mat-paginator
+        [length]="store.totalElements()"
+        [pageIndex]="page()"
+        [pageSize]="size()"
+        [pageSizeOptions]="[10, 20, 50]"
+        (page)="changePage($event)"
+      />
+    </mat-card-content>
+  </mat-card>
+</main>

@@ -60,14 +60,14 @@
       </a>
       <a
         mat-list-item
-        routerLink="/clientes"
+        routerLink="/usuarios"
         routerLinkActive
         #customersLink="routerLinkActive"
         [activated]="customersLink.isActive"
         (click)="isHandset && drawer.close()"
       >
         <mat-icon matListItemIcon>people</mat-icon>
-        <span matListItemTitle>Clientes</span>
+        <span matListItemTitle>Usuarios</span>
       </a>
       <a
         mat-list-item
@@ -80,18 +80,35 @@
         <mat-icon matListItemIcon>swap_horiz</mat-icon>
         <span matListItemTitle>Préstamos</span>
       </a>
-      <mat-divider />
       <a
         mat-list-item
-        routerLink="/login"
+        routerLink="/editoriales"
         routerLinkActive
-        #loginLink="routerLinkActive"
-        [activated]="loginLink.isActive"
+        #editorialsLink="routerLinkActive"
+        [activated]="editorialsLink.isActive"
         (click)="isHandset && drawer.close()"
       >
-        <mat-icon matListItemIcon>login</mat-icon>
-        <span matListItemTitle>Login</span>
+        <mat-icon matListItemIcon>business</mat-icon>
+        <span matListItemTitle>Editoriales</span>
       </a>
+      <a
+        mat-list-item
+        routerLink="/reservas"
+        routerLinkActive
+        #reservationsLink="routerLinkActive"
+        [activated]="reservationsLink.isActive"
+        (click)="isHandset && drawer.close()"
+        ><mat-icon matListItemIcon>bookmark</mat-icon><span matListItemTitle>Reservas</span></a
+      >
+      <a
+        mat-list-item
+        routerLink="/multas"
+        routerLinkActive
+        #finesLink="routerLinkActive"
+        [activated]="finesLink.isActive"
+        (click)="isHandset && drawer.close()"
+        ><mat-icon matListItemIcon>payments</mat-icon><span matListItemTitle>Multas</span></a
+      >
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>

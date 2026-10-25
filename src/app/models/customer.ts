@@ -1,9 +1,1 @@
-export interface Customer {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-}
-
-export type CustomerFormValue = Omit<Customer, 'id'>;
+export type { Usuario as Customer, UsuarioSolicitud as CustomerFormValue } from './api';

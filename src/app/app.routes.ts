@@ -33,12 +33,12 @@ export const routes: Routes = [
     title: 'Categorías | Librería Gestión',
   },
   {
-    path: 'clientes',
+    path: 'usuarios',
     loadComponent: () =>
       import('./features/customers/customers-page.component').then(
         (module) => module.CustomersPageComponent,
       ),
-    title: 'Clientes | Librería Gestión',
+    title: 'Usuarios | Librería Gestión',
   },
   {
     path: 'prestamos',
@@ -47,10 +47,26 @@ export const routes: Routes = [
     title: 'Préstamos y devoluciones | Librería Gestión',
   },
   {
-    path: 'login',
+    path: 'editoriales',
     loadComponent: () =>
-      import('./features/login/login-page.component').then((module) => module.LoginPageComponent),
-    title: 'Login | Librería Gestión',
+      import('./features/editorials/editorials-page.component').then(
+        (module) => module.EditorialsPageComponent,
+      ),
+    title: 'Editoriales | Librería Gestión',
+  },
+  {
+    path: 'reservas',
+    loadComponent: () =>
+      import('./features/reservations/reservations-page.component').then(
+        (module) => module.ReservationsPageComponent,
+      ),
+    title: 'Reservas | Librería Gestión',
+  },
+  {
+    path: 'multas',
+    loadComponent: () =>
+      import('./features/fines/fines-page.component').then((module) => module.FinesPageComponent),
+    title: 'Multas | Librería Gestión',
   },
   { path: '**', redirectTo: 'dashboard' },
 ];

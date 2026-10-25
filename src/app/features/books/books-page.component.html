@@ -1,146 +1,109 @@
 <main class="page-content">
-  <section class="page-heading" aria-labelledby="books-title">
-    <h1 id="books-title">Libros</h1>
-    <button matButton="filled" type="button" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Nuevo libro
+  <section class="page-heading">
+    <h1>Libros</h1>
+    <button matButton="filled" (click)="create()" [disabled]="pending()">
+      <mat-icon>add</mat-icon>Nuevo libro
     </button>
   </section>
-
-  <mat-card class="table-card" appearance="outlined" aria-labelledby="catalog-title">
-    <mat-card-header>
-      <mat-card-title id="catalog-title">Catálogo de libros</mat-card-title>
-      <mat-card-subtitle>{{ filteredBooks().length }} resultados</mat-card-subtitle>
-    </mat-card-header>
-
-    <mat-card-content>
-      <div class="table-toolbar">
-        <mat-form-field class="search-field" appearance="outline">
-          <mat-label>Buscar libro</mat-label>
-          <mat-icon matIconPrefix>search</mat-icon>
-          <input
-            matInput
-            type="search"
-            placeholder="Título, autor, ISBN..."
-            (input)="onSearch($event)"
-          />
-        </mat-form-field>
-      </div>
-
-      <mat-divider />
-
-      <div class="table-wrapper">
-        <table
-          mat-table
-          [dataSource]="pagedBooks()"
-          matSort
-          [matSortActive]="sort().active"
-          [matSortDirection]="sort().direction"
-          (matSortChange)="onSort($event)"
-          aria-label="Catálogo de libros"
+  <mat-card class="table-card" appearance="outlined"
+    ><mat-card-content
+      ><form class="table-toolbar" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+        <mat-form-field appearance="outline"
+          ><mat-label>Buscar catálogo</mat-label
+          ><input matInput type="search" formControlName="buscar"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>Autor</mat-label
+          ><mat-select formControlName="autorId"
+            ><mat-option [value]="null">Todos</mat-option>
+            @for (author of authors.authors(); track author.id) {
+              <mat-option [value]="author.id">{{ author.nombre }} {{ author.apellido }}</mat-option>
+            }
+          </mat-select></mat-form-field
         >
-          <ng-container matColumnDef="title">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Título</th>
-            <td mat-cell *matCellDef="let book">
-              <div class="book-title">{{ book.title }}</div>
-              <div class="book-isbn">ISBN {{ book.isbn }}</div>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="author">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Autor</th>
-            <td mat-cell *matCellDef="let book">{{ authorName(book.authorId) }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="category">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Categoría</th>
-            <td mat-cell *matCellDef="let book">
-              <mat-chip-set aria-label="Categoría">
-                <mat-chip class="category-chip" disableRipple>
-                  {{ categoryName(book.categoryId) }}
-                </mat-chip>
-              </mat-chip-set>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Precio</th>
-            <td mat-cell *matCellDef="let book">{{ book.price | currency: 'EUR' }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="stock">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
-            <td mat-cell *matCellDef="let book">{{ book.stock }} uds.</td>
-          </ng-container>
-
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Estado</th>
-            <td mat-cell *matCellDef="let book">
-              <mat-chip-set aria-label="Estado del libro">
-                <mat-chip
-                  class="status-chip"
-                  [class.status-disponible]="book.status === 'Disponible'"
-                  [class.status-bajo-stock]="book.status === 'Bajo stock'"
-                  [class.status-agotado]="book.status === 'Agotado'"
-                  disableRipple
-                >
-                  <span class="status-dot"></span>
-                  {{ book.status }}
-                </mat-chip>
-              </mat-chip-set>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">Acciones</span></th>
-            <td mat-cell *matCellDef="let book">
-              <button
-                matIconButton
-                [matMenuTriggerFor]="actionsMenu"
-                [matMenuTriggerData]="{ book }"
-                [attr.aria-label]="'Acciones para ' + book.title"
-                matTooltip="Acciones"
-              >
-                <mat-icon>more_vert</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-          <tr class="mat-row" *matNoDataRow>
-            <td class="empty-cell" [attr.colspan]="displayedColumns.length">
-              No hay libros que coincidan con la búsqueda.
-            </td>
-          </tr>
-        </table>
-      </div>
-    </mat-card-content>
-
-    <mat-divider />
-    <mat-card-footer>
+        <mat-form-field appearance="outline"
+          ><mat-label>Categoría</mat-label
+          ><mat-select formControlName="categoriaId"
+            ><mat-option [value]="null">Todas</mat-option>
+            @for (category of categories.categories(); track category.id) {
+              <mat-option [value]="category.id">{{ category.nombre }}</mat-option>
+            }
+          </mat-select></mat-form-field
+        >
+        <mat-form-field appearance="outline"
+          ><mat-label>Editorial</mat-label
+          ><mat-select formControlName="editorialId"
+            ><mat-option [value]="null">Todas</mat-option>
+            @for (editorial of editorials.editorials(); track editorial.id) {
+              <mat-option [value]="editorial.id">{{ editorial.nombre }}</mat-option>
+            }
+          </mat-select></mat-form-field
+        >
+        <mat-form-field appearance="outline"
+          ><mat-label>Año</mat-label><input matInput type="number" formControlName="anio"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>Disponibilidad</mat-label
+          ><mat-select formControlName="disponible"
+            ><mat-option [value]="null">Todas</mat-option
+            ><mat-option [value]="true">Disponible</mat-option
+            ><mat-option [value]="false">Sin disponibilidad</mat-option></mat-select
+          ></mat-form-field
+        >
+        <button matButton="filled" type="submit">Aplicar filtros</button>
+      </form>
+      @if (store.loading()) {
+        <p role="status">Cargando libros...</p>
+      }
+      @if (store.error()) {
+        <p role="alert">{{ store.error() }}</p>
+      }
+      <table mat-table [dataSource]="store.books()">
+        <ng-container matColumnDef="titulo"
+          ><th mat-header-cell *matHeaderCellDef>Título</th>
+          <td mat-cell *matCellDef="let b">
+            {{ b.titulo }}<br />{{ b.isbn || 'Sin ISBN' }}
+          </td></ng-container
+        ><ng-container matColumnDef="autores"
+          ><th mat-header-cell *matHeaderCellDef>Autores</th>
+          <td mat-cell *matCellDef="let b">
+            @for (a of b.autores; track a.id; let last = $last) {
+              {{ a.nombre }} {{ a.apellido }}{{ last ? '' : ', ' }}
+            }
+          </td></ng-container
+        ><ng-container matColumnDef="categorias"
+          ><th mat-header-cell *matHeaderCellDef>Categorías</th>
+          <td mat-cell *matCellDef="let b">
+            @for (c of b.categorias; track c.id; let last = $last) {
+              {{ c.nombre }}{{ last ? '' : ', ' }}
+            }
+          </td></ng-container
+        ><ng-container matColumnDef="editorial"
+          ><th mat-header-cell *matHeaderCellDef>Editorial</th>
+          <td mat-cell *matCellDef="let b">
+            {{ b.editorial?.nombre || 'Sin editorial' }}
+          </td></ng-container
+        ><ng-container matColumnDef="stock"
+          ><th mat-header-cell *matHeaderCellDef>Stock</th>
+          <td mat-cell *matCellDef="let b">
+            {{ b.cantidadDisponible }} / {{ b.cantidadTotal }}
+          </td></ng-container
+        ><ng-container matColumnDef="acciones"
+          ><th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let b">
+            <button matButton (click)="detail(b)">Detalle</button>
+            <button matButton (click)="edit(b)" [disabled]="pending()">Editar</button
+            ><button matButton (click)="stock(b)" [disabled]="pending()">Stock</button>
+          </td></ng-container
+        >
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
       <mat-paginator
-        [length]="filteredBooks().length"
-        [pageIndex]="pageIndex()"
-        [pageSize]="pageSize()"
-        [pageSizeOptions]="[8, 16, 24]"
-        showFirstLastButtons
-        (page)="onPageChange($event)"
-        aria-label="Paginación del catálogo"
-      ></mat-paginator>
-    </mat-card-footer>
-  </mat-card>
+        [length]="store.totalElements()"
+        [pageIndex]="page()"
+        [pageSize]="size()"
+        [pageSizeOptions]="[10, 20, 50]"
+        (page)="changePage($event)" /></mat-card-content
+  ></mat-card>
 </main>
-
-<mat-menu #actionsMenu="matMenu">
-  <ng-template matMenuContent let-book="book">
-    <button mat-menu-item type="button" (click)="openEditDialog(book)">
-      <mat-icon>edit</mat-icon>
-      <span>Modificar</span>
-    </button>
-    <button mat-menu-item type="button" (click)="confirmDelete(book)">
-      <mat-icon>delete</mat-icon>
-      <span>Eliminar</span>
-    </button>
-  </ng-template>
-</mat-menu>

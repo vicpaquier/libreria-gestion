@@ -1,104 +1,33 @@
 <main class="page-content">
-  <section class="page-heading" aria-labelledby="categories-title">
-    <h1 id="categories-title">Categorías</h1>
-    <button matButton="filled" type="button" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>Nueva categoría
-    </button>
+  <section class="page-heading">
+    <h1>Categorías</h1>
+    <button matButton="filled" (click)="create()"><mat-icon>add</mat-icon>Nueva categoría</button>
   </section>
-
-  <mat-card class="table-card" appearance="outlined" aria-labelledby="categories-catalog-title">
-    <mat-card-header>
-      <mat-card-title id="categories-catalog-title">Catálogo de categorías</mat-card-title>
-      <mat-card-subtitle>{{ filteredCategories().length }} resultados</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="table-toolbar">
-        <mat-form-field class="search-field" appearance="outline">
-          <mat-label>Buscar categoría</mat-label><mat-icon matIconPrefix>search</mat-icon>
-          <input
-            matInput
-            type="search"
-            placeholder="Nombre o descripción..."
-            (input)="onSearch($event)"
-          />
-        </mat-form-field>
-      </div>
-      <mat-divider />
-      <div class="table-wrapper">
-        <table
-          mat-table
-          [dataSource]="pagedCategories()"
-          matSort
-          [matSortActive]="sort().active"
-          [matSortDirection]="sort().direction"
-          (matSortChange)="onSort($event)"
-          aria-label="Catálogo de categorías"
+  <mat-card class="table-card" appearance="outlined"
+    ><mat-card-content>
+      @if (store.loading()) {
+        <p role="status">Cargando categorías...</p>
+      }
+      @if (store.error()) {
+        <p role="alert">{{ store.error() }}</p>
+      }
+      <table mat-table [dataSource]="store.categories()">
+        <ng-container matColumnDef="nombre"
+          ><th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let item">{{ item.nombre }}</td></ng-container
+        ><ng-container matColumnDef="descripcion"
+          ><th mat-header-cell *matHeaderCellDef>Descripción</th>
+          <td mat-cell *matCellDef="let item">
+            {{ item.descripcion || 'Sin descripción' }}
+          </td></ng-container
+        ><ng-container matColumnDef="acciones"
+          ><th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let item">
+            <button matButton (click)="edit(item)">Editar</button
+            ><button matButton (click)="remove(item)">Eliminar</button>
+          </td></ng-container
         >
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
-            <td mat-cell *matCellDef="let category" class="primary-cell">{{ category.name }}</td>
-          </ng-container>
-          <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Descripción</th>
-            <td mat-cell *matCellDef="let category">
-              <div class="secondary-cell">{{ category.description }}</div>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="books">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Libros</th>
-            <td mat-cell *matCellDef="let category">
-              <mat-chip-set aria-label="Libros asociados"
-                ><mat-chip class="count-chip" disableRipple>{{
-                  bookCount(category.id)
-                }}</mat-chip></mat-chip-set
-              >
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">Acciones</span></th>
-            <td mat-cell *matCellDef="let category">
-              <button
-                matIconButton
-                [matMenuTriggerFor]="actionsMenu"
-                [matMenuTriggerData]="{ category }"
-                [attr.aria-label]="'Acciones para ' + category.name"
-                matTooltip="Acciones"
-              >
-                <mat-icon>more_vert</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-          <tr class="mat-row" *matNoDataRow>
-            <td class="empty-cell" [attr.colspan]="displayedColumns.length">
-              No hay categorías que coincidan con la búsqueda.
-            </td>
-          </tr>
-        </table>
-      </div>
-    </mat-card-content>
-    <mat-divider />
-    <mat-card-footer
-      ><mat-paginator
-        [length]="filteredCategories().length"
-        [pageIndex]="pageIndex()"
-        [pageSize]="pageSize()"
-        [pageSizeOptions]="[8, 16, 24]"
-        showFirstLastButtons
-        (page)="onPageChange($event)"
-        aria-label="Paginación de categorías"
-    /></mat-card-footer>
-  </mat-card>
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr></table></mat-card-content
+  ></mat-card>
 </main>
-
-<mat-menu #actionsMenu="matMenu">
-  <ng-template matMenuContent let-category="category">
-    <button mat-menu-item type="button" (click)="openEditDialog(category)">
-      <mat-icon>edit</mat-icon><span>Modificar</span>
-    </button>
-    <button mat-menu-item type="button" (click)="confirmDelete(category)">
-      <mat-icon>delete</mat-icon><span>Eliminar</span>
-    </button>
-  </ng-template>
-</mat-menu>

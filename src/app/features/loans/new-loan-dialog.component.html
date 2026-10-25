@@ -1,67 +1,29 @@
 <h2 mat-dialog-title>Nuevo préstamo</h2>
-
-<mat-dialog-content>
-  <form class="loan-form" [formGroup]="form" (ngSubmit)="submit()">
-    <mat-form-field appearance="outline">
-      <mat-label>Cliente</mat-label>
-      <mat-select formControlName="customerId">
-        @for (customer of customersStore.customers(); track customer.id) {
-          <mat-option [value]="customer.id">{{ customer.name }}</mat-option>
+<mat-dialog-content
+  ><form class="loan-form" [formGroup]="form">
+    <mat-form-field appearance="outline"
+      ><mat-label>Usuario activo</mat-label
+      ><mat-select formControlName="usuarioId">
+        @for (u of users.customers(); track u.id) {
+          <mat-option [value]="u.id">{{ u.nombre }} {{ u.apellido }} · {{ u.cedula }}</mat-option>
         }
-      </mat-select>
-      @if (form.controls.customerId.hasError('min')) {
-        <mat-error>Selecciona un cliente.</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Libro disponible</mat-label>
-      <mat-select formControlName="bookId">
-        @for (book of availableBooks(); track book.id) {
-          <mat-option [value]="book.id">{{ book.title }} · {{ book.stock }} uds.</mat-option>
+      </mat-select></mat-form-field
+    ><mat-form-field appearance="outline"
+      ><mat-label>Libros disponibles</mat-label
+      ><mat-select formControlName="librosIds" multiple>
+        @for (b of books.books(); track b.id) {
+          <mat-option [value]="b.id" [disabled]="b.cantidadDisponible === 0"
+            >{{ b.titulo }} ({{ b.cantidadDisponible }})</mat-option
+          >
         }
-      </mat-select>
-      <mat-hint>Solo se muestran libros con stock.</mat-hint>
-      @if (form.controls.bookId.hasError('min')) {
-        <mat-error>Selecciona un libro.</mat-error>
-      }
-    </mat-form-field>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha de préstamo</mat-label>
-        <input matInput [matDatepicker]="loanPicker" formControlName="loanDate" />
-        <mat-datepicker-toggle matIconSuffix [for]="loanPicker" />
-        <mat-datepicker #loanPicker />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Devolución prevista</mat-label>
-        <input
-          matInput
-          [matDatepicker]="duePicker"
-          [min]="form.controls.loanDate.value"
-          formControlName="dueDate"
-        />
-        <mat-datepicker-toggle matIconSuffix [for]="duePicker" />
-        <mat-datepicker #duePicker />
-        @if (form.hasError('dateRange')) {
-          <mat-error>Debe ser igual o posterior a la fecha de préstamo.</mat-error>
-        }
-      </mat-form-field>
-    </div>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Observaciones</mat-label>
-      <textarea matInput formControlName="notes" rows="3"></textarea>
-      <mat-hint align="end">{{ form.controls.notes.value.length }} / 300</mat-hint>
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button matButton mat-dialog-close type="button"><mat-icon>close</mat-icon>Cancelar</button>
-  <button matButton="filled" type="button" (click)="submit()">
-    <mat-icon>output</mat-icon>Registrar salida
-  </button>
-</mat-dialog-actions>
+      </mat-select></mat-form-field
+    ><mat-form-field appearance="outline"
+      ><mat-label>Fecha de vencimiento</mat-label
+      ><input matInput type="date" formControlName="fechaVencimiento"
+    /></mat-form-field></form></mat-dialog-content
+><mat-dialog-actions align="end"
+  ><button matButton mat-dialog-close>Cancelar</button
+  ><button matButton="filled" (click)="submit()" [disabled]="submitted()">
+    Crear préstamo
+  </button></mat-dialog-actions
+>

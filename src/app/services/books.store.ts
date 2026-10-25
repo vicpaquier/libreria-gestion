@@ -1,179 +1,68 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { Book, BookFormValue } from '../models/book';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, finalize, tap } from 'rxjs';
+import { Libro, LibroDetalle, LibroSolicitud, Pagina } from '../models/api';
 
-const INITIAL_BOOKS: Book[] = [
-  {
-    id: 1,
-    title: 'Cien años de soledad',
-    isbn: '978-0307474728',
-    authorId: 1,
-    categoryId: 1,
-    publisher: 'Vintage Español',
-    price: 18.9,
-    stock: 12,
-    status: 'Disponible',
-  },
-  {
-    id: 2,
-    title: 'El principito',
-    isbn: '978-0156012195',
-    authorId: 2,
-    categoryId: 2,
-    publisher: 'Mariner Books',
-    price: 12.5,
-    stock: 8,
-    status: 'Disponible',
-  },
-  {
-    id: 3,
-    title: 'Sapiens',
-    isbn: '978-0062316097',
-    authorId: 3,
-    categoryId: 3,
-    publisher: 'Harper Perennial',
-    price: 24.95,
-    stock: 3,
-    status: 'Bajo stock',
-  },
-  {
-    id: 4,
-    title: 'La sombra del viento',
-    isbn: '978-0143034902',
-    authorId: 4,
-    categoryId: 4,
-    publisher: 'Penguin Books',
-    price: 16.75,
-    stock: 0,
-    status: 'Agotado',
-  },
-  {
-    id: 5,
-    title: '1984',
-    isbn: '978-0451524935',
-    authorId: 5,
-    categoryId: 5,
-    publisher: 'Signet Classics',
-    price: 10.99,
-    stock: 15,
-    status: 'Disponible',
-  },
-  {
-    id: 6,
-    title: 'El nombre del viento',
-    isbn: '978-8401337208',
-    authorId: 6,
-    categoryId: 6,
-    publisher: 'Plaza & Janés',
-    price: 21.0,
-    stock: 5,
-    status: 'Bajo stock',
-  },
-  {
-    id: 7,
-    title: 'Orgullo y prejuicio',
-    isbn: '978-0141439518',
-    authorId: 7,
-    categoryId: 7,
-    publisher: 'Penguin Classics',
-    price: 9.95,
-    stock: 10,
-    status: 'Disponible',
-  },
-  {
-    id: 8,
-    title: 'El arte de la guerra',
-    isbn: '978-1590302255',
-    authorId: 8,
-    categoryId: 8,
-    publisher: 'Shambhala',
-    price: 14.4,
-    stock: 2,
-    status: 'Bajo stock',
-  },
-  {
-    id: 9,
-    title: 'Rayuela',
-    isbn: '978-8437604572',
-    authorId: 9,
-    categoryId: 1,
-    publisher: 'Cátedra',
-    price: 19.5,
-    stock: 7,
-    status: 'Disponible',
-  },
-  {
-    id: 10,
-    title: 'Dune',
-    isbn: '978-0441172719',
-    authorId: 10,
-    categoryId: 5,
-    publisher: 'Ace Books',
-    price: 17.8,
-    stock: 0,
-    status: 'Agotado',
-  },
-  {
-    id: 11,
-    title: 'Los miserables',
-    isbn: '978-0451419439',
-    authorId: 11,
-    categoryId: 9,
-    publisher: 'Signet Classics',
-    price: 15.6,
-    stock: 6,
-    status: 'Disponible',
-  },
-  {
-    id: 12,
-    title: 'Breves respuestas a las grandes preguntas',
-    isbn: '978-8491990237',
-    authorId: 12,
-    categoryId: 10,
-    publisher: 'Crítica',
-    price: 20.25,
-    stock: 4,
-    status: 'Bajo stock',
-  },
-];
-
+export interface FiltrosLibros {
+  buscar?: string;
+  autorId?: number;
+  categoriaId?: number;
+  editorialId?: number;
+  anio?: number;
+  disponible?: boolean;
+}
 @Injectable({ providedIn: 'root' })
 export class BooksStore {
-  private readonly booksState = signal<Book[]>(INITIAL_BOOKS);
-
-  readonly books = this.booksState.asReadonly();
-  readonly totalBooks = computed(() => this.booksState().length);
-
-  add(book: BookFormValue): void {
-    const id = Math.max(0, ...this.booksState().map((item) => item.id)) + 1;
-    this.booksState.update((books) => [...books, this.withStatus({ ...book, id })]);
+  private readonly http = inject(HttpClient);
+  private readonly state = signal<Libro[]>([]);
+  readonly books = this.state.asReadonly();
+  readonly totalBooks = computed(() => this.state().length);
+  readonly totalElements = signal(0);
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+  private requestVersion = 0;
+  private currentPage = 0;
+  private currentSize = 20;
+  private currentFilters: FiltrosLibros = {};
+  load(page = 0, size = 20, filters: FiltrosLibros = {}): void {
+    this.currentPage = page;
+    this.currentSize = size;
+    this.currentFilters = { ...filters };
+    const version = ++this.requestVersion;
+    this.loading.set(true);
+    this.error.set(null);
+    let params = new HttpParams().set('page', page).set('size', size);
+    for (const [key, value] of Object.entries(filters))
+      if (value !== undefined && value !== '') params = params.set(key, String(value));
+    this.http
+      .get<Pagina<Libro>>('/api/libros', { params })
+      .pipe(finalize(() => version === this.requestVersion && this.loading.set(false)))
+      .subscribe({
+        next: (result) => {
+          if (version !== this.requestVersion) return;
+          this.state.set(result.content);
+          this.totalElements.set(result.totalElements);
+        },
+        error: () =>
+          version === this.requestVersion && this.error.set('No se pudieron cargar los libros.'),
+      });
   }
-
-  update(id: number, changes: BookFormValue): void {
-    this.booksState.update((books) =>
-      books.map((book) => (book.id === id ? this.withStatus({ ...changes, id }) : book)),
-    );
+  add(value: LibroSolicitud & { cantidadTotal: number }): Observable<Libro> {
+    return this.http.post<Libro>('/api/libros', value).pipe(tap(() => this.reload()));
   }
-
-  remove(id: number): void {
-    this.booksState.update((books) => books.filter((book) => book.id !== id));
+  update(id: number, value: LibroSolicitud): Observable<Libro> {
+    const { cantidadTotal: _, ...request } = value;
+    return this.http.put<Libro>(`/api/libros/${id}`, request).pipe(tap(() => this.reload()));
   }
-
-  adjustStock(id: number, amount: number): boolean {
-    const book = this.booksState().find((item) => item.id === id);
-    if (!book || book.stock + amount < 0) {
-      return false;
-    }
-
-    this.booksState.update((books) =>
-      books.map((item) =>
-        item.id === id ? this.withStatus({ ...item, stock: item.stock + amount }) : item,
-      ),
-    );
-    return true;
+  adjustStock(id: number, cantidadTotal: number): Observable<Libro> {
+    return this.http
+      .patch<Libro>(`/api/libros/${id}/stock`, { cantidadTotal })
+      .pipe(tap(() => this.reload()));
   }
-
-  private withStatus(book: Omit<Book, 'status'>): Book {
-    const status = book.stock === 0 ? 'Agotado' : book.stock <= 5 ? 'Bajo stock' : 'Disponible';
-    return { ...book, status };
+  get(id: number): Observable<LibroDetalle> {
+    return this.http.get<LibroDetalle>(`/api/libros/${id}`);
+  }
+  private reload(): void {
+    this.load(this.currentPage, this.currentSize, this.currentFilters);
   }
 }
