@@ -1,59 +1,105 @@
-# LibreriaGestion
+# Frontend - Gestión de biblioteca
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.5.
+Aplicación web para la gestión de la biblioteca, desarrollada con Angular 22 y Angular Material.
+Consume el backend mediante rutas relativas bajo `/api`.
 
-## Development server
+## Requisitos
 
-To start a local development server, run:
+- Node.js 22.22.3 o una versión posterior compatible con Angular 22.
+- npm 11.19.0, versión fijada en `package.json`.
+- El backend disponible en `http://localhost:8080` para trabajar localmente.
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Instalación
 
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Ejecución local
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+La aplicación queda disponible en `http://localhost:4200`. El servidor de desarrollo usa
+`proxy.conf.json` para enviar las solicitudes de `/api` a `http://localhost:8080`.
 
-To build the project run:
+## Pruebas y compilación
+
+Ejecutar las pruebas una sola vez:
 
 ```bash
-ng build
+npx ng test --watch=false
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Generar el paquete optimizado para producción:
 
 ```bash
-ng test
+npm run build
 ```
 
-## Running end-to-end tests
+Los archivos estáticos se generan en `dist/libreria-gestion/browser/`.
 
-For end-to-end (e2e) testing, run:
+## Despliegue
+
+El frontend se puede publicar en cualquier servidor de archivos estáticos. El servidor debe:
+
+1. Servir el contenido de `dist/libreria-gestion/browser/`.
+2. Entregar `index.html` para las rutas que no correspondan a un archivo, porque Angular controla
+   la navegación en el navegador.
+3. Redirigir `/api/*` al backend. `proxy.conf.json` solo se utiliza con `npm start` y no forma parte
+   del paquete de producción.
+
+### Ejemplo con Nginx
+
+Después de ejecutar `npm ci` y `npm run build`, copiar el contenido generado al directorio público
+del servidor:
 
 ```bash
-ng e2e
+sudo cp -r dist/libreria-gestion/browser/. /var/www/libreria/
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Configuración de ejemplo cuando el backend se ejecuta en el mismo servidor, en el puerto `8080`:
 
-## Additional Resources
+```nginx
+server {
+    listen 80;
+    server_name ejemplo.com;
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+    root /var/www/libreria;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+Validar y recargar Nginx:
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+En una plataforma de alojamiento estático se deben configurar reglas equivalentes: una reescritura
+de las rutas de la aplicación hacia `/index.html` y un proxy de `/api/*` hacia la URL pública del
+backend. No es suficiente configurar únicamente la URL del backend en `proxy.conf.json`.
+
+## Comandos disponibles
+
+| Comando                     | Descripción                                   |
+| --------------------------- | --------------------------------------------- |
+| `npm start`                 | Inicia el servidor local en el puerto `4200`. |
+| `npm run build`             | Genera el paquete de producción.              |
+| `npm run watch`             | Compila en modo desarrollo y observa cambios. |
+| `npm test`                  | Ejecuta las pruebas en modo interactivo.      |
+| `npx ng test --watch=false` | Ejecuta todas las pruebas una sola vez.       |
